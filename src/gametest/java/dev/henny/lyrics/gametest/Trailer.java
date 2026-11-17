@@ -1,0 +1,105 @@
+package dev.henny.lyrics.gametest;
+
+import dev.henny.lyrics.LyricsConfig;
+import dev.henny.lyrics.Playback;
+import dev.henny.lyrics.client.LyricsScreen;
+import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.minecraft.client.Minecraft;
+
+import java.util.List;
+import java.util.function.Consumer;
+
+/**
+ * Records the trailer: the demo song frame by frame (30 fps) while the camera pans and the look changes with every
+ * line. Each frame seeks the paused song to its exact time, so lyrics and music line up perfectly once
+ * tools/trailer.sh puts the frames and the song together.
+ * Run with: ./gradlew :fabric-1.21.11:runClientGameTest -Dvibeylyrics.trailer=true
+ */
+final class Trailer {
+    static final int FPS = 30;
+    static final long END_MS = 47_000;
+
+    private record Scene(long from, Consumer<Minecraft> setup, float yaw0, float yaw1, float pitch0, float pitch1) {}
+
+    private Trailer() {}
+
+    static void record(ClientGameTestContext context, java.util.function.BiConsumer<Minecraft, Boolean> hud) {
+        List<Scene> scenes = List.of(
+                new Scene(0, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.NEON), -62, -48, -10, -14),
+                new Scene(4_800, mc -> {}, -48, -38, -14, -15),
+                new Scene(9_600, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.SUNSET), -30, -40, -12, -16),
+                new Scene(14_400, mc -> look(LyricsConfig.Position.FRONT, LyricsConfig.Preset.OCEAN), -45, -48, -7, -5),
+                new Scene(19_200, mc -> {
+                    look(LyricsConfig.Position.WORLD, LyricsConfig.Preset.CLASSIC);
+                    LyricsConfig.get().box = true;
+                    mc.player.setYRot(-45);
+                    mc.player.setXRot(-8);
+                    LyricsScreen.placeHere();
+                }, -25, -68, -8, -9),
+                new Scene(24_000, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.ARCADE), -52, -44, -14, -13),
+                new Scene(28_800, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.MARKER), -40, -50, -13, -15),
+                new Scene(33_600, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.RETRO), -55, -45, -15, -13),
+                new Scene(38_400, mc -> {
+                    look(LyricsConfig.Position.HUD, LyricsConfig.Preset.MINIMAL);
+                    hud.accept(mc, false);
+                }, -45, -35, -12, -10),
+                new Scene(43_200, mc -> {
+                    look(LyricsConfig.Position.SKY, LyricsConfig.Preset.NEON);
+                    hud.accept(mc, true);
+                }, -35, -28, -10, -6)
+        );
+        context.runOnClient(mc -> {
+            hud.accept(mc, true);
+            LyricsConfig c = LyricsConfig.get();
+            c.skyFollow = false;
+            c.skyYaw = -45;
+            c.size = 100;
+            c.reveal = LyricsConfig.Reveal.LINE;
+            Playback.play(SongHolder.demo());
+            Playback.pause();
+            LyricsConfig.get().skyYaw = -45;
+        });
+        int[] current = {-1};
+        long frames = END_MS * FPS / 1000;
+        for (int f = 0; f < frames; f++) {
+            long t = f * 1000L / FPS;
+            int idx = 0;
+            for (int i = 0; i < scenes.size(); i++) if (scenes.get(i).from() <= t) idx = i;
+            Scene s = scenes.get(idx);
+            long sceneEnd = idx + 1 < scenes.size() ? scenes.get(idx + 1).from() : END_MS;
+            float k = (t - s.from()) / (float) (sceneEnd - s.from());
+            float ease = k * k * (3 - 2 * k);
+            float yaw = s.yaw0() + (s.yaw1() - s.yaw0()) * ease;
+            float pitch = s.pitch0() + (s.pitch1() - s.pitch0()) * ease;
+            int scene = idx;
+            context.runOnClient(mc -> {
+                if (current[0] != scene) {
+                    current[0] = scene;
+                    s.setup().accept(mc);
+                }
+                mc.player.setYRot(yaw);
+                mc.player.setXRot(pitch);
+                mc.player.yRotO = yaw;
+                mc.player.xRotO = pitch;
+                Playback.seek(t);
+            });
+            context.takeScreenshot("trailer");
+        }
+        context.runOnClient(mc -> Playback.stop());
+        System.out.println("[vibeylyrics-test] trailer: " + frames + " frames at " + FPS + " fps");
+    }
+
+    private static void look(LyricsConfig.Position position, LyricsConfig.Preset preset) {
+        LyricsConfig c = LyricsConfig.get();
+        c.position = position;
+        c.applyPreset(preset);
+        c.skyYaw = -45;
+    }
+
+    /** Small indirection so the trailer can reuse the test's demo lookup. */
+    static final class SongHolder {
+        static dev.henny.lyrics.library.Song demo() {
+            return dev.henny.lyrics.library.SongLibrary.find(dev.henny.lyrics.library.SongLibrary.DEMO.toLowerCase(java.util.Locale.ROOT));
+        }
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "vibeylyrics-gametest",
+  "version": "1.0.0",
+  "name": "Vibey Lyrics Gametest",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": ["dev.henny.lyrics.gametest.LyricsClientGameTest"]
+  },
+  "depends": { "vibeylyrics": "*" }
+}

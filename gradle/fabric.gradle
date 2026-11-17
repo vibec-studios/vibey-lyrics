@@ -1,0 +1,18 @@
+// Fabric, Minecraft 1.21.x (obfuscated game, compiled with Mojang's official names and remapped by Loom).
+plugins {
+    id 'fabric-loom' version '1.15-SNAPSHOT'
+}
+
+ext.javaVersion = 21
+apply from: rootProject.file('gradle/common.gradle')
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "fr.delthas:javamp3:${project.javamp3_version}"
+    include "fr.delthas:javamp3:${project.javamp3_version}"
+}
+
+apply from: rootProject.file('gradle/fabric-resources.gradle')

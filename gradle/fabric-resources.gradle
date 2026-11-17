@@ -1,0 +1,57 @@
+// Shared by both Fabric build scripts.
+base { archivesName = "${project.archives_base_name}-fabric-${project.minecraft_label}" }
+
+def mcVersion = project.minecraft_version
+
+processResources {
+    // Only 1.21.9/1.21.10 lack Fabric's world render events; there a small mixin takes their place.
+    def mixins = (mcVersion == '1.21.9') ? '"mixins": ["vibeylyrics.mixins.json"],' : ''
+    if (mcVersion != '1.21.9') exclude 'vibeylyrics.mixins.json'
+    def props = [
+            version        : project.version,
+            mod_id         : project.mod_id,
+            mod_name       : project.mod_name,
+            minecraft_range: project.minecraft_range,
+            loader_version : project.loader_version,
+            java           : project.ext.javaVersion,
+            mixins         : mixins,
+    ]
+    inputs.properties(props)
+    filesMatching('fabric.mod.json') { expand props }
+}
+
+loom {
+    runs {
+        client { runDir = 'run' }
+        // Dev-only smoke test: quits the game as soon as the title screen is shown and logs it.
+        smoke {
+            inherit client
+            name = 'Smoke Client'
+            vmArg '-Dvibeylyrics.smoke=true'
+            runDir = 'run'
+        }
+    }
+}
+
+// Client game test: starts the real game, plays the demo song and takes screenshots of every position.
+// ./gradlew :fabric-1.21.11:runClientGameTest   (screenshots: versions/<v>/run/clientGameTest/screenshots)
+// Fabric's client game test API exists from 1.21.4 on.
+if (!(mcVersion in ['1.21.1', '1.21.3'])) {
+    fabricApi {
+        configureTests {
+            createSourceSet = true
+            modId = 'vibeylyrics-gametest'
+            enableGameTests = false
+            enableClientGameTests = true
+            eula = true
+        }
+    }
+    sourceSets.named('gametest') {
+        java.srcDirs = [rootProject.file('src/gametest/java')]
+        resources.srcDirs = [rootProject.file('src/gametest/resources')]
+    }
+    loom.runs.named('clientGameTest') {
+        vmArg '-Dfabric.client.gametest.disableNetworkSynchronizer=true'
+        vmArg "-Dvibeylyrics.trailer=${System.getProperty('vibeylyrics.trailer', 'false')}"
+    }
+}
