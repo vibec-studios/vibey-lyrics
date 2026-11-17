@@ -62,6 +62,11 @@ public final class LyricsClientGameTest implements FabricClientGameTest {
                 Trailer.record(context, LyricsClientGameTest::hideHud);
                 return;
             }
+            if ("sky".equals(System.getProperty("vibeylyrics.only"))) {
+                setup(context, mc -> Playback.play(demo()));
+                skyScenes(context);
+                return;
+            }
 
             setup(context, mc -> {
                 hideHud(mc, true);
@@ -138,6 +143,14 @@ public final class LyricsClientGameTest implements FabricClientGameTest {
                 c.reveal = LyricsConfig.Reveal.LINE;
             });
             scene(context, 34_300, "10_sky_sunset_zoom");
+
+            skyScenes(context);
+            setup(context, mc -> {
+                LyricsConfig c = LyricsConfig.get();
+                c.sky = "vanilla";
+                c.matchSky = false;
+                c.position = LyricsConfig.Position.SKY;
+            });
             setup(context, mc -> hideHud(mc, false));
 
             setup(context, mc -> {
@@ -150,6 +163,10 @@ public final class LyricsClientGameTest implements FabricClientGameTest {
             context.setScreen(() -> new LyricsScreen(null));
             context.waitTicks(12);
             context.takeScreenshot("11_menu");
+            context.getInput().setCursorPos(300, 400);
+            context.getInput().scroll(-30);
+            context.waitTicks(6);
+            context.takeScreenshot("11b_menu_skies");
             context.setScreen(() -> new AdvancedScreen(new LyricsScreen(null)));
             context.waitTicks(12);
             context.takeScreenshot("12_advanced");
@@ -191,6 +208,39 @@ public final class LyricsClientGameTest implements FabricClientGameTest {
         }
     }
 
+    /** 1.1: words as 3D objects, custom skies, colors from the sky, the now-playing bar. */
+    private static void skyScenes(ClientGameTestContext context) {
+        look(context, LyricsConfig.Preset.LAVENDER, "sunset", -45, -14);
+        scene(context, 16_700, "15_flight_sunset");
+        scene(context, 19_650, "16_flight_flyby");
+        look(context, LyricsConfig.Preset.DREAMY, "nebula", -45, -16);
+        setup(context, mc -> LyricsConfig.get().matchSky = true);
+        scene(context, 34_950, "17_drift_nebula");
+        look(context, LyricsConfig.Preset.FIRE, "galaxy", -60, -22);
+        scene(context, 30_700, "18_flight_galaxy_fire");
+        look(context, LyricsConfig.Preset.ICE, "aurora", -45, -12);
+        scene(context, 21_000, "19_drift_aurora_ice");
+        look(context, LyricsConfig.Preset.ROYAL, "saturn", -45, -18);
+        scene(context, 25_900, "20_saturn_royal");
+        look(context, LyricsConfig.Preset.COMIC, "synthwave", 0, -8);
+        scene(context, 29_450, "21_synthwave_comic");
+        look(context, LyricsConfig.Preset.SCRIPT, "candy", -45, -16);
+        scene(context, 10_700, "22_candy_script");
+        look(context, LyricsConfig.Preset.LAVENDER, "moonlight", -45, -16);
+        scene(context, 39_950, "23_moonlight_flight");
+        look(context, LyricsConfig.Preset.FIRE, "crimson", -45, -16);
+        scene(context, 6_300, "24_crimson_fire");
+        look(context, LyricsConfig.Preset.LAVENDER, "golden", -45, -14);
+        scene(context, 35_200, "25_golden_flight");
+        look(context, LyricsConfig.Preset.DREAMY, "dreamy", -45, -14);
+        scene(context, 15_900, "26_dreamy_drift");
+        look(context, LyricsConfig.Preset.LAVENDER, "sunset", -45, -14);
+        setup(context, mc -> hideHud(mc, false));
+        scene(context, 30_400, "27_bar_flight_sunset");
+        setup(context, mc -> LyricsConfig.get().position = LyricsConfig.Position.HUD);
+        scene(context, 25_900, "28_hud_flight");
+    }
+
     /** Sets the GUI scale and applies it (resizeDisplay up to 1.21.11, resizeGui in 26.x). */
     private static void guiScale(ClientGameTestContext context, int scale) {
         context.runOnClient(mc -> {
@@ -229,6 +279,24 @@ public final class LyricsClientGameTest implements FabricClientGameTest {
         Song demo = SongLibrary.find(SongLibrary.DEMO.toLowerCase(Locale.ROOT));
         if (demo == null) throw new AssertionError("Demo song missing from " + SongLibrary.songs());
         return demo;
+    }
+
+    /** Sky position with a look and a custom sky, F1 on, looking the given way. */
+    private static void look(ClientGameTestContext context, LyricsConfig.Preset preset, String sky, float yaw, float pitch) {
+        setup(context, mc -> {
+            hideHud(mc, true);
+            LyricsConfig c = LyricsConfig.get();
+            c.position = LyricsConfig.Position.SKY;
+            c.applyPreset(preset);
+            c.reveal = LyricsConfig.Reveal.LINE;
+            c.sky = sky;
+            c.matchSky = false;
+            c.skyYaw = yaw;
+            mc.player.setYRot(yaw);
+            mc.player.setXRot(pitch);
+        });
+        // let the new sky texture load and the fog settle
+        context.waitTicks(10);
     }
 
     private static void setup(ClientGameTestContext context, Consumer<Minecraft> action) {

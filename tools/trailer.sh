@@ -23,7 +23,7 @@ cap() { # text from to
   printf "drawtext=fontfile=bungee.ttf:text='%s':fontsize=32:fontcolor=white:x=48:y=44:box=1:boxcolor=black@0.45:boxborderw=16:alpha='if(lt(t,%s),0,if(lt(t,%s+0.35),(t-%s)/0.35,if(lt(t,%s-0.35),1,if(lt(t,%s),(%s-t)/0.35,0))))'" \
     "$1" "$2" "$2" "$2" "$3" "$3" "$3"
 }
-CAPS="$(cap 'Vibey Lyrics - lyrics mod for Minecraft' 0.6 4.5),$(cap 'Huge in the sky' 5.2 9.4),$(cap '8 looks - 8 fonts' 10.0 14.2),$(cap 'Floating in front of you' 14.8 19.0),$(cap 'Pinned in the world' 19.6 23.8),$(cap 'Karaoke word by word' 24.4 28.6),$(cap 'Bounce - glitch - rainbow' 29.2 33.4),$(cap 'Follows Spotify and your browser' 34.0 38.2),$(cap 'Or right on your HUD' 38.8 43.0)"
+CAPS="$(cap 'Vibey Lyrics - lyrics mod for Minecraft' 0.6 4.5),$(cap 'Words fly in 3D' 5.2 9.4),$(cap 'Or drift calmly' 10.0 14.2),$(cap '11 custom skies' 14.8 19.0),$(cap 'Aurora - galaxy - nebula' 19.6 23.8),$(cap 'Karaoke word by word' 24.4 28.6),$(cap '15 looks - 14 fonts' 29.2 33.4),$(cap 'Follows Spotify and your browser' 34.0 38.2),$(cap 'Now playing bar' 38.8 43.0)"
 (cd "$WORK" && ffmpeg -hide_banner -loglevel error -y -i gameplay.mp4 -i logo.png -filter_complex \
   "[1:v]scale=72:72:flags=neighbor[logo];[0:v][logo]overlay=x=W-w-36:y=30[v0];[v0]${CAPS}[v]" \
   -map "[v]" -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p captioned.mp4)

@@ -3,6 +3,6 @@
   "minVersion": "0.8",
   "package": "dev.henny.lyrics.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": ["LevelRendererMixin"],
+  "client": [${mixin_classes}],
   "injectors": { "defaultRequire": 1 }
 }

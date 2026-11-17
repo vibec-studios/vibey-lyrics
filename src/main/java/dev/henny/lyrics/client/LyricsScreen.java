@@ -10,6 +10,8 @@ import dev.henny.lyrics.library.Song;
 import dev.henny.lyrics.library.SongLibrary;
 import dev.henny.lyrics.pc.NowPlaying;
 import dev.henny.lyrics.pc.PcLyrics;
+import dev.henny.lyrics.render.LyricLayout;
+import dev.henny.lyrics.sky.SkyTheme;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
@@ -125,7 +127,45 @@ public final class LyricsScreen extends CardScreen {
                 cfg.save();
             }) + 2;
         }
+        y += 10;
+        y = skies(g, x, y, w);
         return y + 2;
+    }
+
+    /** Custom skies: a grid of buttons, each with a little gradient of its colors. */
+    private int skies(Gfx g, int x, int y, int w) {
+        y = section(g, I18n.get("vibeylyrics.sky"), x, y);
+        LyricsConfig cfg = LyricsConfig.get();
+        SkyTheme[] skies = SkyTheme.values();
+        int cols = 3;
+        int gap = 2;
+        int ch = 20;
+        for (int i = 0; i < skies.length; i++) {
+            SkyTheme s = skies[i];
+            int cw = (w - gap * (cols - 1)) / cols;
+            int cx = x + (i % cols) * (cw + gap);
+            int cy = y + (i / cols) * (ch + gap);
+            if (i % cols == cols - 1) cw = x + w - cx;
+            boolean sel = s == SkyTheme.of(cfg.sky);
+            boolean hov = hover(cx, cy, cw, ch);
+            g.rect(cx, cy, cw, ch, sel ? 0xFF2A1F33 : (hov ? SURFACE_HOVER : SURFACE));
+            int top = s == SkyTheme.VANILLA ? 0x6E9BEF : s.high;
+            int bottom = s == SkyTheme.VANILLA ? 0xC4DCFF : s.horizon;
+            int sh = ch - 6;
+            for (int k = 0; k < sh; k++) {
+                g.rect(cx + 3, cy + 3 + k, 7, 1, LyricLayout.mix(0xFF000000 | top, 0xFF000000 | bottom, k / (float) (sh - 1)));
+            }
+            if (sel) g.outline(cx, cy, cw, ch, ACCENT);
+            String name = I18n.get("vibeylyrics.sky." + s.id());
+            g.text(g.clip(name, cw - 16), cx + 13, cy + 6, sel ? TEXT : MUTED);
+            hit(cx, cy, cw, ch, () -> {
+                cfg.sky = s.id();
+                cfg.save();
+            });
+        }
+        y += ((skies.length + cols - 1) / cols) * (ch + gap) + 3;
+        g.text(g.clip(I18n.get("vibeylyrics.sky.hint"), w), x, y, DIM);
+        return y + 10;
     }
 
     private int nowPlaying(Gfx g, int x, int y, int w) {

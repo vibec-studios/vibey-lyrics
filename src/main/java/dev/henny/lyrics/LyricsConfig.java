@@ -14,27 +14,44 @@ public final class LyricsConfig {
     /** How the words of a line show up. */
     public enum Reveal { LINE, WORD }
 
-    /** How a line comes in (and, for some, how its words move while sung). */
-    public enum Anim { POP, FADE, SLIDE, ZOOM, WAVE, BOUNCE, TYPE, GLITCH, RAINBOW, NONE }
+    /**
+     * How a line comes in (and, for some, how its words move while sung). FLIGHT and DRIFT place every word on its
+     * own in 3D: FLIGHT builds a tilted ribbon that flies past you when the next line starts, DRIFT is the calm one.
+     */
+    public enum Anim { FLIGHT, DRIFT, POP, FADE, SLIDE, ZOOM, WAVE, BOUNCE, TYPE, GLITCH, RAINBOW, NONE;
+
+        public boolean is3d() {
+            return this == FLIGHT || this == DRIFT;
+        }
+    }
 
     public enum HudPlace { TOP, CENTER, BOTTOM }
 
     /** Fonts shipped with the mod (assets/vibeylyrics/font) plus the two vanilla ones. */
     public static final String[] FONTS = {
             "default", "uniform", "vibeylyrics:bebas", "vibeylyrics:bungee", "vibeylyrics:marker",
-            "vibeylyrics:pacifico", "vibeylyrics:pressstart", "vibeylyrics:monoton"
+            "vibeylyrics:pacifico", "vibeylyrics:pressstart", "vibeylyrics:monoton", "vibeylyrics:poppins",
+            "vibeylyrics:montserrat", "vibeylyrics:kanit", "vibeylyrics:fredoka", "vibeylyrics:unbounded",
+            "vibeylyrics:caveat"
     };
 
     /** Ready-made looks; picking one in the main menu sets font, animation and colors. */
     public enum Preset {
-        NEON("vibeylyrics:bungee", Anim.POP, 0xFFFFFFFF, 0xFFFF4FD8, 0xFF8A2BE2, 70, false, true),
-        CLASSIC("default", Anim.POP, 0xFFFFFFFF, 0xFFFFD43B, 0xFF000000, 55, false, true),
-        SUNSET("vibeylyrics:pacifico", Anim.ZOOM, 0xFFFFE8D6, 0xFFFF7A3D, 0xFFE0115F, 60, false, false),
-        OCEAN("vibeylyrics:bebas", Anim.WAVE, 0xFFE0F7FF, 0xFF3BE8FF, 0xFF1D4ED8, 65, false, false),
-        ARCADE("vibeylyrics:pressstart", Anim.GLITCH, 0xFFF7FFF0, 0xFF4ADE80, 0xFF0F7A35, 70, false, false),
-        MARKER("vibeylyrics:marker", Anim.BOUNCE, 0xFFFFFFFF, 0xFFFFD43B, 0xFF000000, 45, false, false),
-        RETRO("vibeylyrics:monoton", Anim.RAINBOW, 0xFFFFFFFF, 0xFFFF4FD8, 0xFF8A2BE2, 55, false, false),
-        MINIMAL("default", Anim.FADE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFF000000, 0, true, true);
+        LAVENDER("vibeylyrics:poppins", Anim.FLIGHT, 0xFFFFFFFF, 0xFFE4D4FF, 0xFF6D28D9, 0, false, false, true),
+        DREAMY("vibeylyrics:poppins", Anim.DRIFT, 0xFFFFEAF2, 0xFFFFFFFF, 0xFFB0408F, 35, false, false, false),
+        FIRE("vibeylyrics:kanit", Anim.FLIGHT, 0xFFFFF1D6, 0xFFFFB347, 0xFFE0115F, 45, false, false, true),
+        ICE("vibeylyrics:montserrat", Anim.DRIFT, 0xFFF0FBFF, 0xFF9BE7FF, 0xFF1D4ED8, 50, false, false, false),
+        NEON("vibeylyrics:bungee", Anim.POP, 0xFFFFFFFF, 0xFFFF4FD8, 0xFF8A2BE2, 70, false, true, false),
+        CLASSIC("default", Anim.POP, 0xFFFFFFFF, 0xFFFFD43B, 0xFF000000, 55, false, true, false),
+        SUNSET("vibeylyrics:pacifico", Anim.ZOOM, 0xFFFFE8D6, 0xFFFF7A3D, 0xFFE0115F, 60, false, false, false),
+        OCEAN("vibeylyrics:bebas", Anim.WAVE, 0xFFE0F7FF, 0xFF3BE8FF, 0xFF1D4ED8, 65, false, false, false),
+        COMIC("vibeylyrics:fredoka", Anim.BOUNCE, 0xFFFFFFFF, 0xFFFFD43B, 0xFF1E3A8A, 0, false, false, true),
+        SCRIPT("vibeylyrics:caveat", Anim.FLIGHT, 0xFFFFF7EC, 0xFFFFC2D9, 0xFF9D174D, 40, false, false, false),
+        ROYAL("vibeylyrics:unbounded", Anim.ZOOM, 0xFFFFF7E0, 0xFFFFC94A, 0xFF6B21A8, 55, false, false, true),
+        ARCADE("vibeylyrics:pressstart", Anim.GLITCH, 0xFFF7FFF0, 0xFF4ADE80, 0xFF0F7A35, 70, false, false, false),
+        MARKER("vibeylyrics:marker", Anim.BOUNCE, 0xFFFFFFFF, 0xFFFFD43B, 0xFF000000, 45, false, false, false),
+        RETRO("vibeylyrics:monoton", Anim.RAINBOW, 0xFFFFFFFF, 0xFFFF4FD8, 0xFF8A2BE2, 55, false, false, false),
+        MINIMAL("default", Anim.FADE, 0xFFFFFFFF, 0xFFFFFFFF, 0xFF000000, 0, true, true, false);
 
         public final String font;
         public final Anim anim;
@@ -44,8 +61,11 @@ public final class LyricsConfig {
         public final int glowStrength;
         public final boolean box;
         public final boolean bold;
+        /** 3D letters with depth. */
+        public final boolean depth;
 
-        Preset(String font, Anim anim, int text, int highlight, int glow, int glowStrength, boolean box, boolean bold) {
+        Preset(String font, Anim anim, int text, int highlight, int glow, int glowStrength, boolean box, boolean bold, boolean depth) {
+            this.depth = depth;
             this.font = font;
             this.anim = anim;
             this.text = text;
@@ -60,27 +80,41 @@ public final class LyricsConfig {
     // main menu
     public String song = "";
     public Position position = Position.SKY;
-    public Preset preset = Preset.NEON;
+    public Preset preset = Preset.LAVENDER;
     public int volume = 80;
 
     // advanced: look
-    public String font = Preset.NEON.font;
-    public boolean bold = true;
+    public String font = Preset.LAVENDER.font;
+    public boolean bold = false;
+    /** Thick 3D letters with depth behind them. */
+    public boolean depth = Preset.LAVENDER.depth;
+    /** Lyric colors follow the sky (custom sky, or day / sunset / night of the normal one). */
+    public boolean matchSky = false;
     /** Little sparkles fly off each word the moment it is sung. */
     public boolean sparkles = true;
     public boolean uppercase = false;
-    public int textColor = Preset.NEON.text;
-    public int highlightColor = Preset.NEON.highlight;
-    public int glowColor = Preset.NEON.glow;
-    public int glowStrength = Preset.NEON.glowStrength;
+    public int textColor = Preset.LAVENDER.text;
+    public int highlightColor = Preset.LAVENDER.highlight;
+    public int glowColor = Preset.LAVENDER.glow;
+    public int glowStrength = Preset.LAVENDER.glowStrength;
     public boolean box = false;
     /** 50 … 300 percent. */
     public int size = 100;
     /** Extra space between rows, in percent of the line height. */
     public int lineSpacing = 30;
     public Reveal reveal = Reveal.LINE;
-    public Anim anim = Preset.NEON.anim;
+    public Anim anim = Preset.LAVENDER.anim;
     public boolean showNext = true;
+    /** Small "now playing" bar at the top of the screen with the current line. */
+    public boolean pill = true;
+
+    // sky
+    /** Custom sky, see {@link dev.henny.lyrics.sky.SkyTheme}; "vanilla" = the normal sky. */
+    public String sky = "vanilla";
+    /** Hide the vanilla clouds while a custom sky is shown (they would be cut off by it). */
+    public boolean hideClouds = true;
+    /** Shooting stars in night skies. */
+    public boolean shootingStars = true;
 
     // advanced: placement
     public HudPlace hudPlace = HudPlace.CENTER;
@@ -126,6 +160,7 @@ public final class LyricsConfig {
         glowColor = p.glow;
         glowStrength = p.glowStrength;
         box = p.box;
+        depth = p.depth;
     }
 
     private static LyricsConfig load() {
@@ -146,7 +181,8 @@ public final class LyricsConfig {
 
     private void sanitize() {
         if (position == null) position = Position.SKY;
-        if (preset == null) preset = Preset.NEON;
+        if (preset == null) preset = Preset.LAVENDER;
+        if (sky == null) sky = "vanilla";
         if (reveal == null) reveal = Reveal.LINE;
         if (anim == null) anim = Anim.POP;
         if (hudPlace == null) hudPlace = HudPlace.CENTER;

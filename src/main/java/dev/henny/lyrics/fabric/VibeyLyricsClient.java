@@ -95,7 +95,20 @@ public final class VibeyLyricsClient implements ClientModInitializer {
             boolean start = screen instanceof TitleScreen || screen.getClass().getSimpleName().contains("Onboarding");
             if (start && Boolean.getBoolean("vibeylyrics.smoke") && !smokeDone) {
                 smokeDone = true;
-                VibeyLyrics.LOG.info("[vibeylyrics-smoke] title screen reached, {} songs in the library", SongLibrary.songs().size());
+                // Load the classes the mixins change, so a mixin that does not fit this version fails right here.
+                int loaded = 0;
+                for (String c : new String[]{"net.minecraft.client.renderer.FogRenderer", "net.minecraft.client.renderer.fog.FogRenderer",
+                        "net.minecraft.client.renderer.SkyRenderer", "net.minecraft.client.renderer.CloudRenderer",
+                        "net.minecraft.client.renderer.LevelRenderer"}) {
+                    try {
+                        Class.forName(c);
+                        loaded++;
+                    } catch (ClassNotFoundException ignored) {
+                    } catch (Throwable t) {
+                        VibeyLyrics.LOG.error("[vibeylyrics-smoke] mixin FAILED on {}: {}", c, t.toString());
+                    }
+                }
+                VibeyLyrics.LOG.info("[vibeylyrics-smoke] title screen reached, {} songs in the library, {} mixin targets loaded", SongLibrary.songs().size(), loaded);
                 client.execute(client::stop);
             }
         });

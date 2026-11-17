@@ -2,7 +2,6 @@ package dev.henny.lyrics.gametest;
 
 import dev.henny.lyrics.LyricsConfig;
 import dev.henny.lyrics.Playback;
-import dev.henny.lyrics.client.LyricsScreen;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.Minecraft;
 
@@ -10,8 +9,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Records the trailer: the demo song frame by frame (30 fps) while the camera pans and the look changes with every
- * line. Each frame seeks the paused song to its exact time, so lyrics and music line up perfectly once
+ * Records the trailer: the demo song frame by frame (30 fps) while the camera pans and look and sky change with
+ * every line. Each frame seeks the paused song to its exact time, so lyrics and music line up perfectly once
  * tools/trailer.sh puts the frames and the song together.
  * Run with: ./gradlew :fabric-1.21.11:runClientGameTest -Dvibeylyrics.trailer=true
  */
@@ -25,39 +24,36 @@ final class Trailer {
 
     static void record(ClientGameTestContext context, java.util.function.BiConsumer<Minecraft, Boolean> hud) {
         List<Scene> scenes = List.of(
-                new Scene(0, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.NEON), -62, -48, -10, -14),
-                new Scene(4_800, mc -> {}, -48, -38, -14, -15),
-                new Scene(9_600, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.SUNSET), -30, -40, -12, -16),
-                new Scene(14_400, mc -> look(LyricsConfig.Position.FRONT, LyricsConfig.Preset.OCEAN), -45, -48, -7, -5),
-                new Scene(19_200, mc -> {
-                    look(LyricsConfig.Position.WORLD, LyricsConfig.Preset.CLASSIC);
-                    LyricsConfig.get().box = true;
-                    mc.player.setYRot(-45);
-                    mc.player.setXRot(-8);
-                    LyricsScreen.placeHere();
-                }, -25, -68, -8, -9),
-                new Scene(24_000, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.ARCADE), -52, -44, -14, -13),
-                new Scene(28_800, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.MARKER), -40, -50, -13, -15),
-                new Scene(33_600, mc -> look(LyricsConfig.Position.SKY, LyricsConfig.Preset.RETRO), -55, -45, -15, -13),
+                new Scene(0, mc -> look(LyricsConfig.Preset.LAVENDER, "sunset", false), -62, -50, -12, -15),
+                new Scene(4_800, mc -> {}, -50, -40, -15, -16),
+                new Scene(9_600, mc -> look(LyricsConfig.Preset.DREAMY, "nebula", true), -36, -46, -14, -18),
+                new Scene(14_400, mc -> look(LyricsConfig.Preset.FIRE, "galaxy", false), -66, -56, -20, -23),
+                new Scene(19_200, mc -> look(LyricsConfig.Preset.ICE, "aurora", false), -40, -50, -11, -14),
+                new Scene(24_000, mc -> look(LyricsConfig.Preset.ROYAL, "saturn", false), -50, -42, -17, -19),
+                new Scene(28_800, mc -> {
+                    look(LyricsConfig.Preset.COMIC, "synthwave", false);
+                    LyricsConfig.get().skyYaw = 0;
+                }, -6, 6, -7, -9),                new Scene(33_600, mc -> look(LyricsConfig.Preset.SCRIPT, "candy", false), -40, -50, -15, -17),
                 new Scene(38_400, mc -> {
-                    look(LyricsConfig.Position.HUD, LyricsConfig.Preset.MINIMAL);
+                    look(LyricsConfig.Preset.LAVENDER, "moonlight", false);
                     hud.accept(mc, false);
-                }, -45, -35, -12, -10),
+                }, -50, -40, -15, -13),
                 new Scene(43_200, mc -> {
-                    look(LyricsConfig.Position.SKY, LyricsConfig.Preset.NEON);
+                    look(LyricsConfig.Preset.LAVENDER, "golden", false);
                     hud.accept(mc, true);
-                }, -35, -28, -10, -6)
+                }, -40, -32, -13, -9)
         );
         context.runOnClient(mc -> {
             hud.accept(mc, true);
             LyricsConfig c = LyricsConfig.get();
+            c.position = LyricsConfig.Position.SKY;
             c.skyFollow = false;
             c.skyYaw = -45;
             c.size = 100;
             c.reveal = LyricsConfig.Reveal.LINE;
+            c.shootingStars = true;
             Playback.play(SongHolder.demo());
             Playback.pause();
-            LyricsConfig.get().skyYaw = -45;
         });
         int[] current = {-1};
         long frames = END_MS * FPS / 1000;
@@ -72,6 +68,7 @@ final class Trailer {
             float yaw = s.yaw0() + (s.yaw1() - s.yaw0()) * ease;
             float pitch = s.pitch0() + (s.pitch1() - s.pitch0()) * ease;
             int scene = idx;
+            boolean switched = current[0] != scene;
             context.runOnClient(mc -> {
                 if (current[0] != scene) {
                     current[0] = scene;
@@ -83,16 +80,20 @@ final class Trailer {
                 mc.player.xRotO = pitch;
                 Playback.seek(t);
             });
+            // a new sky texture loads on its first frame
+            if (switched) context.waitTicks(3);
             context.takeScreenshot("trailer");
         }
         context.runOnClient(mc -> Playback.stop());
         System.out.println("[vibeylyrics-test] trailer: " + frames + " frames at " + FPS + " fps");
     }
 
-    private static void look(LyricsConfig.Position position, LyricsConfig.Preset preset) {
+    private static void look(LyricsConfig.Preset preset, String sky, boolean matchSky) {
         LyricsConfig c = LyricsConfig.get();
-        c.position = position;
+        c.position = LyricsConfig.Position.SKY;
         c.applyPreset(preset);
+        c.sky = sky;
+        c.matchSky = matchSky;
         c.skyYaw = -45;
     }
 

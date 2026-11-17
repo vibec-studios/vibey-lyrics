@@ -4,6 +4,7 @@ import dev.henny.lyrics.Compat;
 import dev.henny.lyrics.LyricsConfig;
 import dev.henny.lyrics.client.ui.CardScreen;
 import dev.henny.lyrics.client.ui.Gfx;
+import dev.henny.lyrics.sky.SkyTheme;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -83,6 +84,9 @@ public final class AdvancedScreen extends CardScreen {
         h = row(g, x, y, w, "vibeylyrics.adv.bold");
         toggle(g, "bold", r, y + h / 2, c.bold, () -> c.bold = !c.bold);
         y += h + 2;
+        h = row(g, x, y, w, "vibeylyrics.adv.depth");
+        toggle(g, "depth", r, y + h / 2, c.depth, () -> c.depth = !c.depth);
+        y += h + 2;
         h = row(g, x, y, w, "vibeylyrics.adv.uppercase");
         toggle(g, "upper", r, y + h / 2, c.uppercase, () -> c.uppercase = !c.uppercase);
         y += h + 2;
@@ -94,6 +98,9 @@ public final class AdvancedScreen extends CardScreen {
         y += h + 10;
 
         y = section(g, I18n.get("vibeylyrics.adv.colors"), x, y);
+        h = row(g, x, y, w, "vibeylyrics.adv.matchsky");
+        toggle(g, "matchsky", r, y + h / 2, c.matchSky, () -> c.matchSky = !c.matchSky);
+        y += h + 2;
         h = row(g, x, y, w, "vibeylyrics.adv.color.text");
         swatches(g, r, y + h / 2, TEXT_COLORS, c.textColor, v -> c.textColor = v);
         y += h + 2;
@@ -128,6 +135,24 @@ public final class AdvancedScreen extends CardScreen {
         y += h + 2;
         h = row(g, x, y, w, "vibeylyrics.adv.next");
         toggle(g, "next", r, y + h / 2, c.showNext, () -> c.showNext = !c.showNext);
+        y += h + 2;
+        h = row(g, x, y, w, "vibeylyrics.adv.pill");
+        toggle(g, "pill", r, y + h / 2, c.pill, () -> c.pill = !c.pill);
+        y += h + 10;
+
+        y = section(g, I18n.get("vibeylyrics.sky"), x, y);
+        h = row(g, x, y, w, "vibeylyrics.adv.skytheme");
+        SkyTheme[] skies = SkyTheme.values();
+        SkyTheme sky = SkyTheme.of(c.sky);
+        cycler(g, r, y + h / 2, I18n.get("vibeylyrics.sky." + sky.id()),
+                () -> c.sky = skies[(sky.ordinal() + skies.length - 1) % skies.length].id(),
+                () -> c.sky = skies[(sky.ordinal() + 1) % skies.length].id());
+        y += h + 2;
+        h = row(g, x, y, w, "vibeylyrics.adv.clouds");
+        toggle(g, "clouds", r, y + h / 2, c.hideClouds, () -> c.hideClouds = !c.hideClouds);
+        y += h + 2;
+        h = row(g, x, y, w, "vibeylyrics.adv.stars");
+        toggle(g, "stars", r, y + h / 2, c.shootingStars, () -> c.shootingStars = !c.shootingStars);
         y += h + 10;
 
         y = section(g, I18n.get("vibeylyrics.adv.placement"), x, y);
@@ -185,6 +210,10 @@ public final class AdvancedScreen extends CardScreen {
             c.anim = d.anim;
             c.reveal = d.reveal;
             c.showNext = d.showNext;
+            c.pill = d.pill;
+            c.matchSky = d.matchSky;
+            c.hideClouds = d.hideClouds;
+            c.shootingStars = d.shootingStars;
             c.sparkles = d.sparkles;
             c.skyFollow = d.skyFollow;
             c.skyHeight = d.skyHeight;

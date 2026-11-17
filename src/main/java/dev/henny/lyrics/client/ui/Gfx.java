@@ -120,6 +120,14 @@ public final class Gfx {
         /*g.pose().translate(x, y, 0f);*/
     }
 
+    /** Turns everything drawn after it by {@code radians} (clockwise on screen). */
+    public void rotate(float radians) {
+        //? if >=1.21.6 {
+        g.pose().rotate(radians);
+        //?} else
+        /*g.pose().mulPose(com.mojang.math.Axis.ZP.rotation(radians));*/
+    }
+
     public void scale(float sx, float sy) {
         //? if >=1.21.6 {
         g.pose().scale(sx, sy);

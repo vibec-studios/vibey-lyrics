@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import dev.henny.lyrics.Compat;
 import dev.henny.lyrics.LyricsConfig;
 import dev.henny.lyrics.Playback;
+import dev.henny.lyrics.sky.SkyDome;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -26,6 +27,7 @@ public final class WorldLyrics {
     private WorldLyrics() {}
 
     public static void render(PoseStack pose, WorldSink sink) {
+        SkyDome.render(pose, sink);
         LyricsConfig cfg = LyricsConfig.get();
         Minecraft mc = Minecraft.getInstance();
         if (cfg.position == LyricsConfig.Position.HUD || Playback.song() == null || mc.level == null) return;
@@ -66,11 +68,12 @@ public final class WorldLyrics {
                 fixedYaw = cfg.anchorYaw;
             }
         }
+        Vec3 rel = target.subtract(eye);
+        float room = (float) (rel.length() / scale);
         LyricLayout.Frame frame = LyricLayout.build(mc.font, Playback.lyrics(), Playback.song().title(),
-                Playback.song().artist(), Playback.lyricTimeMs(), maxWidth);
+                Playback.song().artist(), Playback.lyricTimeMs(), maxWidth, room);
         if (frame.isEmpty()) return;
 
-        Vec3 rel = target.subtract(eye);
         Quaternionf rot;
         if (faceCamera) {
             double h = Math.sqrt(rel.x * rel.x + rel.z * rel.z);
@@ -88,11 +91,16 @@ public final class WorldLyrics {
         Font font = mc.font;
         new Painter(font) {
             @Override
-            protected void text(Component c, float x, float y, float s, int argb, boolean back) {
+            protected void draw(Component c, LyricLayout.Run r, float ox, float oy, float oz, int argb, boolean back) {
+                float s = r.scale();
                 pose.pushPose();
-                // Glow copies sit a hair behind the text so they never cover it.
-                pose.translate(x, y, back ? -0.35f : 0f);
-                pose.scale(s, s, 1f);
+                pose.translate(r.x(), r.y() + LyricLayout.ROW * s / 2f, r.z());
+                if (r.yaw() != 0f || r.roll() != 0f) {
+                    Compat.rotate(pose, new Quaternionf().rotationYXZ((float) Math.toRadians(r.yaw()), 0f, (float) Math.toRadians(r.roll())));
+                }
+                pose.scale(s, s, s);
+                // Glow copies and 3D sides sit a hair behind the text so they never cover it.
+                pose.translate(-font.width(c) / 2f + ox, -LyricLayout.ROW / 2f + oy, oz);
                 sink.text(font, pose, c, 0, 0, argb, 0, !back);
                 pose.popPose();
             }

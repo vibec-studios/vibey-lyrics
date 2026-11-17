@@ -107,6 +107,14 @@ public final class Compat {
         /*return camera.getXRot();*/
     }
 
+    /** Time of day in ticks (0 = sunrise, 6000 = noon), counted up without wrapping. */
+    public static long dayTime(net.minecraft.world.level.Level level) {
+        //? if >=26.1 {
+        /*return level.getOverworldClockTime();
+        *///?} else
+        return level.getDayTime();
+    }
+
     /** Style with a font: "default", "uniform" (vanilla) or a namespaced id like "vibeylyrics:bebas". */
     public static Style font(Style style, String font) {
         if (font == null || "default".equals(font)) return style;

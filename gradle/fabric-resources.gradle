@@ -4,9 +4,12 @@ base { archivesName = "${project.archives_base_name}-fabric-${project.minecraft_
 def mcVersion = project.minecraft_version
 
 processResources {
-    // Only 1.21.9/1.21.10 lack Fabric's world render events; there a small mixin takes their place.
-    def mixins = (mcVersion == '1.21.9') ? '"mixins": ["vibeylyrics.mixins.json"],' : ''
-    if (mcVersion != '1.21.9') exclude 'vibeylyrics.mixins.json'
+    // Fog color and clouds for the custom skies everywhere; 1.21.9/1.21.10 also lack Fabric's world render events,
+    // there a small mixin takes their place.
+    def mixins = '"mixins": ["vibeylyrics.mixins.json"],'
+    def mixinClasses = ['"FogMixin"', '"CloudMixin"', '"SkyMixin"']
+    if (mcVersion == '1.21.9') mixinClasses << '"LevelRendererMixin"'
+    filesMatching('vibeylyrics.mixins.json') { expand(mixin_classes: mixinClasses.join(', ')) }
     def props = [
             version        : project.version,
             mod_id         : project.mod_id,
@@ -15,6 +18,7 @@ processResources {
             loader_version : project.loader_version,
             java           : project.ext.javaVersion,
             mixins         : mixins,
+            mixin_classes  : mixinClasses.join(', '),
     ]
     inputs.properties(props)
     filesMatching('fabric.mod.json') { expand props }
@@ -53,5 +57,6 @@ if (!(mcVersion in ['1.21.1', '1.21.3'])) {
     loom.runs.named('clientGameTest') {
         vmArg '-Dfabric.client.gametest.disableNetworkSynchronizer=true'
         vmArg "-Dvibeylyrics.trailer=${System.getProperty('vibeylyrics.trailer', 'false')}"
+        vmArg "-Dvibeylyrics.only=${System.getProperty('vibeylyrics.only', '')}"
     }
 }
