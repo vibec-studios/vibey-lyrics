@@ -10,7 +10,8 @@ import java.util.Locale;
 import java.util.Random;
 
 /**
- * Synthesizes the demo song "Pixel Skies" (music and words by Vibe Craft Studios, MIT like the rest of the repo)
+ * Synthesizes the demo song "Pixel Skies" (music and words by Vibe Craft Studios; this
+ * code is Apache-2.0, the song itself is an asset, see NOTICE)
  * and writes its word-timed .lrc. Every sung word is one lead note, so the karaoke timing is exact.
  *
  * java tools/DemoSong.java <out-dir>      then: ffmpeg -i pixel_skies.wav -c:a libvorbis -q:a 4 pixel_skies.ogg
@@ -80,7 +81,7 @@ public class DemoSong {
         StringBuilder lrc = new StringBuilder();
         lrc.append("[ti:Pixel Skies]\n[ar:Vibe Craft Studios]\n[al:Vibey Lyrics Demo]\n");
         lrc.append("[length:").append(clock(total - 1.0)).append("]\n");
-        lrc.append("[re:Original demo song for Vibey Lyrics, MIT]\n\n");
+        lrc.append("[re:Original demo song for Vibey Lyrics]\n\n");
         for (int i = 0; i < LINES.length; i++) {
             double lineStart = (INTRO_BARS + i * LINE_BARS) * BAR;
             StringBuilder line = new StringBuilder("[" + clock(lineStart) + "]");

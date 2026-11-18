@@ -11,7 +11,7 @@ by line with karaoke highlighting, glow and animations, or word by word as 3D ob
 
 ![Minecraft](https://img.shields.io/badge/Minecraft-1.21%E2%80%9326.3-green)
 ![Loader](https://img.shields.io/badge/Loader-Fabric-blue)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![License](https://img.shields.io/badge/License-Apache--2.0-blue)
 
 [![Watch the trailer](docs/trailer-poster.jpg)](docs/trailer.mp4)
 
@@ -158,8 +158,21 @@ Requires JDK 21 and JDK 25 (Minecraft 26.x). Multi-version builds use
 
 ## License
 
-[MIT](LICENSE), including the demo song *Pixel Skies* and the skies. Not an official Minecraft product. Not approved by or
-associated with Mojang or Microsoft.
+**Code:** [Apache License 2.0](LICENSE), including the generators in `tools/`. You may fork, change and share it.
+Releases published before 2026-11-18 stay under the MIT License they were released with (the demo song and the skies
+in those releases included).
+
+**Not** covered by the code license (applies to all repositories of Vibe Craft Studios,
+[LICENSING.md](https://github.com/vibec-studios/.github/blob/main/LICENSING.md)):
+
+- **Names and logos** ("Vibey", "Vibey Lyrics", "Vibe Craft Studios", the seal): forks need their own name, mod ID
+  and logo – [TRADEMARKS.md](https://github.com/vibec-studios/.github/blob/main/TRADEMARKS.md).
+- **Artwork and sounds** (icons, skies, the demo song *Pixel Skies*, screenshots, trailer): all rights reserved –
+  [ASSETS-POLICY.md](https://github.com/vibec-studios/.github/blob/main/ASSETS-POLICY.md); paths in [NOTICE](NOTICE).
+- **Vibe services** (`vibe.henny.dev`, `vibey.henny.dev`): official builds only –
+  [SERVICES.md](https://github.com/vibec-studios/.github/blob/main/SERVICES.md).
+
+Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.
 
 Bundled third-party parts: the fonts Poppins, Montserrat, Kanit, Fredoka, Unbounded, Caveat, Bebas Neue, Bungee,
 Pacifico, Press Start 2P and Monoton ([SIL Open Font License 1.1](licenses/fonts)), Permanent Marker ([Apache 2.0](licenses/fonts/marker-LICENSE.txt)), and
